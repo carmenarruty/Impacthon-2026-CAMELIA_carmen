@@ -22,8 +22,6 @@ function generateMasterPDF({ data, reportData, savedAnnotations = [], viewerImag
   /* ── Cabecera ── */
   doc.setFillColor(6, 6, 16);
   doc.rect(0, 0, W, 44, 'F');
-
-
   doc.setFontSize(17); doc.setFont('helvetica', 'bold'); doc.setTextColor(139, 92, 246);
   doc.text('CAMELIA · Informe Maestro de Predicción', MARGIN, 16);
   doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(150, 155, 175);

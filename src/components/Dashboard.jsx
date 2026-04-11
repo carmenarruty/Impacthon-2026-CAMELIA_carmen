@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Server, ArrowLeft, Pin, Trash2, Search, X,
   Clock, Zap, CheckCircle2, AlertCircle, Eye,
@@ -8,6 +8,8 @@ import AIReport from './AIReport';
 import DrugScoreCard from './DrugScoreCard';
 import ProteinStatsCard from './ProteinStatsCard';
 import { getJobOutputs, getJobAccounting } from '../services/api';
+import DownloadPanel from './DownloadPanel';
+import PAEHeatmap from './PAEHeatmap';
 
 /* ─── Keyframes globales (inyectados una vez) ─────────────────────────────── */
 const GLOBAL_CSS = `
@@ -254,6 +256,7 @@ function ViewerSidebar({ highlightResidue, setHighlightResidue, savedAnnotations
 /* ─── Dashboard principal ──────────────────────────────────────────────────── */
 export default function Dashboard({ jobId, onNewSearch }) {
   const [data, setData] = useState(null);
+  const [isSynthetic, setIsSynthetic] = useState(false);
   const [accounting, setAccounting] = useState(null);
   const [aiStats, setAiStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -262,6 +265,8 @@ export default function Dashboard({ jobId, onNewSearch }) {
 
   const [highlightResidue, setHighlightResidue] = useState('');
   const [savedAnnotations, setSavedAnnotations] = useState([]);
+  const [viewerSnapshot, setViewerSnapshot] = useState(null);
+  const viewerRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -269,6 +274,8 @@ export default function Dashboard({ jobId, onNewSearch }) {
       try {
         const [out, acc] = await Promise.all([getJobOutputs(jobId), getJobAccounting(jobId)]);
         if (!out) throw new Error('No se pudieron recuperar los datos.');
+        const pdbId = out.protein_metadata?.pdb_id;
+        setIsSynthetic(!pdbId || pdbId.trim() === '');
         setData(out);
         setAccounting(acc?.accounting || null);
         setJobStatus('COMPLETED');
@@ -355,37 +362,52 @@ export default function Dashboard({ jobId, onNewSearch }) {
               setSavedAnnotations={setSavedAnnotations}
             />
             <MolecularViewer
-              modelData={structural_data?.cif_file || structural_data?.pdb_file}
+              ref={viewerRef}
+              modelData={isSynthetic ? null : (structural_data?.pdb_file || null)}
+              useFallback={isSynthetic}
               format={structural_data?.cif_file ? 'cif' : 'pdb'}
               plddtPerResidue={structural_data?.confidence?.plddt_per_residue}
               highlightResidue={highlightResidue}
               savedAnnotations={savedAnnotations}
             />
           </div>
+          {isSynthetic && (
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: '0.9rem',
+              background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.3)',
+              borderRadius: '12px', padding: '0.9rem 1.2rem',
+            }}>
+              <span style={{ fontSize: '1.2rem', flexShrink: 0 }}>⚗️</span>
+              <div>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fbbf24', marginBottom: '0.25rem' }}>
+                  Proteína fuera del catálogo — Datos algorítmicos
+                </div>
+                <div style={{ fontSize: '0.76rem', color: '#92400e', lineHeight: 1.6 }}>
+                  Esta secuencia no está entre las 22 proteínas del catálogo CESGA. La estructura 3D mostrada es una proteína de referencia real (RCSB), no la predicción de tu secuencia. Los datos biológicos son estimaciones computacionales, no medidas experimentales.
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ← jobId es crucial: decide lógica CESGA vs. inferencia IA */}
-          <AIReport data={data} savedAnnotations={savedAnnotations} jobId={jobId} />
-
-          {/* Monitor de ejecución */}
-          <div style={{ padding: '1.2rem', borderRadius: '14px', background: 'rgba(10,14,28,.88)', border: '1px solid rgba(59,130,246,.18)', backdropFilter: 'blur(10px)' }}>
-            <h3 style={{ margin: '0 0 0.85rem', fontSize: '0.7rem', color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '0.09em', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Server size={13} /> Monitor CESGA — FinisTerrae III
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-              {jobQueue.map(job => (
-                <JobRow key={job.id} job={job} isActive={job.id === jobId} onView={job.id !== jobId ? (id) => console.info('Navegar a job:', id) : undefined} />
-              ))}
-            </div>
-            {accounting && (
-              <div style={{ marginTop: '0.85rem', paddingTop: '0.85rem', borderTop: '1px solid rgba(255,255,255,.055)', fontSize: '0.77rem', color: '#94a3b8' }}>
-                GPU consumidas: <span style={{ color: '#60a5fa', fontWeight: 600 }}>{accounting.gpu_hours?.toFixed(2)}h</span>
-              </div>
-            )}
-          </div>
+          <PAEHeatmap
+            paeMatrix={structural_data?.confidence?.pae_matrix}
+            meanPae={structural_data?.confidence?.mean_pae}
+          />
+           /* Dashboard.jsx corregido */
+          <AIReport
+            data={data}
+            savedAnnotations={savedAnnotations}
+            jobId={jobId}
+            // Pasamos la referencia directamente para que AIReport la use solo al hacer clic
+            viewerRef={viewerRef}
+          />
         </div>
 
         {/* Columna derecha */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+
+          <DownloadPanel data={data} jobId={jobId} accounting={accounting} />
 
           <div style={{ background: 'rgba(25,30,48,.85)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,.07)', backdropFilter: 'blur(10px)' }}>
             <h3 style={{ margin: '0 0 0.7rem', fontSize: '0.7rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.09em' }}>Confianza pLDDT</h3>
@@ -396,6 +418,28 @@ export default function Dashboard({ jobId, onNewSearch }) {
 
           <DrugScoreCard biologicalData={biological_data} />
           <ProteinStatsCard aiData={aiStats} />
+
+          {/* Monitor de cola con estados reactivos */}
+          <div style={{ padding: '1.2rem', borderRadius: '14px', background: 'rgba(10,14,28,.88)', border: '1px solid rgba(59,130,246,.18)', backdropFilter: 'blur(10px)' }}>
+            <h3 style={{ margin: '0 0 0.85rem', fontSize: '0.7rem', color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '0.09em', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Server size={13} /> Monitor CESGA — FinisTerrae III
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+              {jobQueue.map(job => (
+                <JobRow
+                  key={job.id}
+                  job={job}
+                  isActive={job.id === jobId}
+                  onView={job.id !== jobId ? (id) => console.info('Navegar a job:', id) : undefined}
+                />
+              ))}
+            </div>
+            {accounting && (
+              <div style={{ marginTop: '0.85rem', paddingTop: '0.85rem', borderTop: '1px solid rgba(255,255,255,.055)', fontSize: '0.77rem', color: '#94a3b8' }}>
+                GPU consumidas: <span style={{ color: '#60a5fa', fontWeight: 600 }}>{accounting.gpu_hours?.toFixed(2)}h</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

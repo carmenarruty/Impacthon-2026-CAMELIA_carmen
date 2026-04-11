@@ -75,7 +75,7 @@ export default function DrugScoreCard({ biologicalData }) {
       }}>
         {verdict.label === 'Candidata Prometedora' ? <ShieldCheck color={verdict.color} /> : <AlertTriangle color={verdict.color} />}
         <span style={{ fontWeight: 'bold', color: verdict.color, letterSpacing: '0.5px' }}>
-          VEREDICTO: {verdict.label.toUpperCase()}
+          VERDICTO: {verdict.label.toUpperCase()}
         </span>
       </div>
     </div>
