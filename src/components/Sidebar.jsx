@@ -2,12 +2,12 @@ import { useState, useRef, useEffect } from 'react';
 import { Activity, FileText, FlaskConical, History, BookOpen, Globe, ChevronDown } from 'lucide-react';
 
 const menuItems = [
-  { id: 'informes',         label: 'Informes',               icon: FileText     },
-  { id: 'nueva-prediccion', label: 'Nueva Predicción',       icon: FlaskConical },
-  { id: 'ejecuciones',      label: 'Ejecuciones',            icon: Activity     },
-  { id: 'historial',        label: 'Historial',              icon: History      },
-  { id: 'info-publica',     label: 'Información Pública',    icon: Globe        },
-  { id: 'instrucciones',    label: 'Instrucciones/Tutorial', icon: BookOpen     },
+  { id: 'informes', label: 'Informes', icon: FileText },
+  { id: 'nueva-prediccion', label: 'Nueva Predicción', icon: FlaskConical },
+  { id: 'ejecuciones', label: 'Ejecuciones', icon: Activity },
+  { id: 'historial', label: 'Historial', icon: History },
+  { id: 'info-publica', label: 'Información Pública', icon: Globe },
+  { id: 'instrucciones', label: 'Instrucciones/Tutorial', icon: BookOpen },
 ];
 
 export default function Sidebar({ activeTab, onTabChange }) {
@@ -41,8 +41,8 @@ export default function Sidebar({ activeTab, onTabChange }) {
           transition: 'border-radius 0.1s',
         }}
       >
-        <img src="/logo.jpeg" alt="logo" style={{ width: '24px', height: '24px', borderRadius: '6px', objectFit: 'cover' }} />
-        <ActiveIcon size={15} color="#818cf8" />
+        <img src="/logo.jpeg" alt="logo" style={{ width: '35px', height: '35px', borderRadius: '6px', objectFit: 'cover' }} />
+        <ActiveIcon size={30} color="#818cf8" />
         <span style={{ flex: 1, textAlign: 'left' }}>{activeItem?.label || 'Menú'}</span>
         <ChevronDown size={15} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
       </button>

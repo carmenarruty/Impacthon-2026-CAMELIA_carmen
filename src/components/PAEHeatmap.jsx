@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import SequenceOptimizer from './SequenceOptimizer';
 
 /* ─── Paleta: azul oscuro (bajo error) → blanco → amarillo (alto error) ──── */
-function paeToRGB(value, maxVal) {
+function paeToRGB(value, maxVal) {  
     const t = Math.min(Math.max(value / maxVal, 0), 1);
     if (t < 0.3) {
         // Azul oscuro → azul claro (0–30% del rango)
