@@ -2,10 +2,10 @@ import { CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function HistorialView() {
   const history = [
-    { id: 'job_61b74c', date: '2026-04-10', protein: 'Ubiquitin', plddt: 89.2, status: 'COMPLETED' },
-    { id: 'job_cc319e', date: '2026-04-09', protein: 'Hemoglobin alpha', plddt: 94.5, status: 'COMPLETED' },
-    { id: 'job_44af01', date: '2026-04-05', protein: 'Synthetic Peptide A', plddt: 42.1, status: 'FAILED' },
-    { id: 'job_11x00b', date: '2026-04-01', protein: 'Lysozyme C', plddt: 91.8, status: 'COMPLETED' },
+    { id: 'job_61b74c', date: '2026-04-11', protein: 'Ubiquitin', plddt: 89.2, status: 'COMPLETED' },
+    { id: 'job_cc319e', date: '2026-04-11', protein: 'Hemoglobin alpha', plddt: 94.5, status: 'COMPLETED' },
+    { id: 'job_44af01', date: '2026-04-10', protein: 'Synthetic Peptide A', plddt: 42.1, status: 'FAILED' },
+    { id: 'job_11x00b', date: '2026-04-10', protein: 'Lysozyme C', plddt: 91.8, status: 'COMPLETED' },
   ];
 
   return (
